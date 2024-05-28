@@ -516,15 +516,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startPattern: {fileID: 11400000, guid: 59a699b348c5bfa49b7569cd457df3b5, type: 2}
   rules:
-  - {fileID: 11400000, guid: 51f185015bb098a4da2f296cb770a264, type: 2}
   - {fileID: 11400000, guid: 0cf3650536efa5c4e8418eb33cf0a513, type: 2}
+  - {fileID: 11400000, guid: 51f185015bb098a4da2f296cb770a264, type: 2}
   - {fileID: 11400000, guid: 2033bd5774a7a0548970eb0f9cdc3509, type: 2}
   updateInterval: 0.05
   isActive: 1
   frontBuffer: {fileID: 872669646}
   backBuffer: {fileID: 195336044}
-  aliveTile: {fileID: 11400000, guid: be4c83ea78c16514a9879a48ece224c8, type: 2}
-  deadTile: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

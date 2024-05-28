@@ -16,11 +16,6 @@ public class GameBoard : MonoBehaviour
     [SerializeField] private Tilemap frontBuffer;
     [SerializeField] private Tilemap backBuffer;
 
-    [Header("Tile References")]
-    [SerializeField] private Tile aliveTile;
-    [SerializeField] private Tile deadTile;
-
-
     private HashSet<Vector3Int> aliveCells;
     private HashSet<Vector3Int> cellsToCheck;
 
@@ -39,9 +34,6 @@ public class GameBoard : MonoBehaviour
         SetPattern(startPattern);
     }
 
-    [ContextMenu("Restart")]
-    private void SetBasePattern() => SetPattern(startPattern);
-
     private void SetPattern(Pattern pattern)
     {
         Reset();
@@ -50,8 +42,8 @@ public class GameBoard : MonoBehaviour
 
         for (int i = 0; i < pattern.cells.Length; i++)
         {
-            Vector3Int cell = (Vector3Int)(pattern.cells[i] - center);
-            frontBuffer.SetTile(cell, aliveTile);
+            Vector3Int cell = (Vector3Int)(pattern.cells[i].position - center);
+            frontBuffer.SetTile(cell, pattern.cells[i].tile.Tile);
             aliveCells.Add(cell);
         }
 
@@ -110,11 +102,10 @@ public class GameBoard : MonoBehaviour
         // transition cells to the next state
         foreach (Vector3Int cell in cellsToCheck)
         {
-            RuleResult result = RuleResult.NoResult;
+            TileDefinition result = TileDefinition.NoResult;
             foreach (var rule in rules) {
                 result = rule.Evaluate(this, cell);
-
-                if(result != RuleResult.NoResult)
+                if(!result.isNon)
                     break; 
             }
             ApplyResult(result, cell);
@@ -138,8 +129,31 @@ public class GameBoard : MonoBehaviour
                 Vector3Int neighbor = cell + new Vector3Int(x, y);
 
                 if (x == 0 && y == 0) {
-                    continue;
+                    continue; //skipped to not count self
                 } else if (IsAlive(neighbor)) {
+                    count++;
+                }
+            }
+        }
+
+        return count;
+    }
+    public int CountNeighborsOfType(Vector3Int cell, TileDefinition tile)
+    {
+        int count = 0;
+
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int y = -1; y <= 1; y++)
+            {
+                Vector3Int neighbor = cell + new Vector3Int(x, y);
+
+                if (x == 0 && y == 0)
+                {
+                    continue;
+                }
+                else if (IsAlive(neighbor) && frontBuffer.GetTile(neighbor) == tile.Tile)
+                {
                     count++;
                 }
             }
@@ -150,28 +164,19 @@ public class GameBoard : MonoBehaviour
 
     public bool IsAlive(Vector3Int cell)
     {
-        return frontBuffer.GetTile(cell) == aliveTile;
+        return frontBuffer.GetTile(cell) != TileDefinition.Dead.Tile;
     }
 
-    public void ApplyResult(RuleResult result, Vector3Int cell) {
-        switch (result)
-        {
-            case RuleResult.Dead:
-                backBuffer.SetTile(cell, deadTile);
-                aliveCells.Remove(cell);
-                break;
 
-            case RuleResult.Tile1:
-            case RuleResult.Tile2:
-            case RuleResult.Tile3:
-                backBuffer.SetTile(cell, aliveTile);
-                aliveCells.Add(cell);
-                break; 
-
-            case RuleResult.NoResult:
-                backBuffer.SetTile(cell, frontBuffer.GetTile(cell));
-                break;
-
+    public void ApplyResult(TileDefinition result, Vector3Int cell) {
+        if(result.isDead) {
+            aliveCells.Remove(cell);
+            backBuffer.SetTile(cell, result.Tile);
+        } else if(!result.isNon) {
+            aliveCells.Add(cell);
+            backBuffer.SetTile(cell, result.Tile);
+        } else {
+            backBuffer.SetTile(cell, frontBuffer.GetTile(cell));
         }
     }
 

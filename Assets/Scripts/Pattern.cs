@@ -3,7 +3,7 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Game of Life/Pattern")]
 public class Pattern : ScriptableObject
 {
-    public Vector2Int[] cells;
+    public Cell[] cells;
 
     public Vector2Int GetCenter()
     {
@@ -16,7 +16,7 @@ public class Pattern : ScriptableObject
 
         for (int i = 0; i < cells.Length; i++)
         {
-            Vector2Int cell = cells[i];
+            Vector2Int cell = cells[i].position;
             min.x = Mathf.Min(min.x, cell.x);
             min.y = Mathf.Min(min.y, cell.y);
             max.x = Mathf.Max(max.x, cell.x);
@@ -24,6 +24,12 @@ public class Pattern : ScriptableObject
         }
 
         return (min + max) / 2;
+    }
+
+    [System.Serializable]
+    public class Cell {
+        public Vector2Int position; 
+        public TileDefinition tile;
     }
 
 }
