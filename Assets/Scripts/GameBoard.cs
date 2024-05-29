@@ -16,16 +16,16 @@ public class GameBoard : MonoBehaviour
     [SerializeField] private Tilemap frontBuffer;
     [SerializeField] private Tilemap backBuffer;
 
-    private HashSet<Vector3Int> aliveCells;
+    private HashSet<Vector3Int> activeCells;
     private HashSet<Vector3Int> cellsToCheck;
 
-    public int population { get; private set; }
-    public int iterations { get; private set; }
-    public float time { get; private set; }
+    public int Population { get; private set; }
+    public int Iterations { get; private set; }
+    public float Time { get; private set; }
 
     private void Awake()
     {
-        aliveCells = new HashSet<Vector3Int>();
+        activeCells = new HashSet<Vector3Int>();
         cellsToCheck = new HashSet<Vector3Int>();
     }
 
@@ -44,21 +44,21 @@ public class GameBoard : MonoBehaviour
         {
             Vector3Int cell = (Vector3Int)(pattern.cells[i].position - center);
             frontBuffer.SetTile(cell, pattern.cells[i].tile.Tile);
-            aliveCells.Add(cell);
+            activeCells.Add(cell);
         }
 
-        population = aliveCells.Count;
+        Population = activeCells.Count;
     }
 
     private void Reset()
     {
-        aliveCells.Clear();
+        activeCells.Clear();
         cellsToCheck.Clear();
         frontBuffer.ClearAllTiles();
         backBuffer.ClearAllTiles();
-        population = 0;
-        iterations = 0;
-        time = 0f;
+        Population = 0;
+        Iterations = 0;
+        Time = 0f;
     }
 
     private void OnEnable()
@@ -79,9 +79,9 @@ public class GameBoard : MonoBehaviour
 
             UpdateState();
 
-            population = aliveCells.Count;
-            iterations++;
-            time += updateInterval;
+            Population = activeCells.Count;
+            Iterations++;
+            Time += updateInterval;
 
             yield return interval;
         }
@@ -92,7 +92,7 @@ public class GameBoard : MonoBehaviour
         cellsToCheck.Clear();
 
         // gather cells to check
-        foreach (Vector3Int cell in aliveCells) {
+        foreach (Vector3Int cell in activeCells) {
             for (int x = -1; x <= 1; x++)
                 for (int y = -1; y <= 1; y++)
                     cellsToCheck.Add(cell + new Vector3Int(x, y));
@@ -170,10 +170,10 @@ public class GameBoard : MonoBehaviour
 
     public void ApplyResult(TileDefinition result, Vector3Int cell) {
         if(result.isDead) {
-            aliveCells.Remove(cell);
+            activeCells.Remove(cell);
             backBuffer.SetTile(cell, result.Tile);
         } else if(!result.isNon) {
-            aliveCells.Add(cell);
+            activeCells.Add(cell);
             backBuffer.SetTile(cell, result.Tile);
         } else {
             backBuffer.SetTile(cell, frontBuffer.GetTile(cell));

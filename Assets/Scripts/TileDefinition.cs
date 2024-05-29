@@ -13,7 +13,7 @@ public class TileDefinition : ScriptableObject {
         return this;
     }
     public Tile Tile;
-    [HideInInspector] public bool isDead;
+    public bool isDead;
     [HideInInspector] public bool isNon;
 
     public static TileDefinition Dead => CreateInstance<TileDefinition>().Init(null, true);
