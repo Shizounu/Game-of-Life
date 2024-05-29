@@ -12,3 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 689ce26a60981f443a3d5c8f8d70f867, type: 3}
   m_Name: Rule_Repopulation
   m_EditorClassIdentifier: 
+  Tile: {fileID: 11400000, guid: 129abf142a54bfc4e8eaa8b3c54644bd, type: 2}
