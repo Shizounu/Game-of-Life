@@ -12,12 +12,13 @@ public class GameBoard : MonoBehaviour
     [SerializeField] private float updateInterval = 0.05f;
     [SerializeField] private bool isActive = true;
 
-    [Header("Buffers")]
-    [SerializeField] private Tilemap frontBuffer;
-    [SerializeField] private Tilemap backBuffer;
+    [SerializeField] private Tilemap RenderMap;
 
-    private HashSet<Vector3Int> activeCells;
-    private HashSet<Vector3Int> cellsToCheck;
+    private HashSet<Vector2Int> activeCells;
+    private HashSet<Vector2Int> cellsToCheck;
+
+    private TileBuffer frontBuffer;
+    private TileBuffer backBuffer; 
 
     public int Population { get; private set; }
     public int Iterations { get; private set; }
@@ -25,8 +26,11 @@ public class GameBoard : MonoBehaviour
 
     private void Awake()
     {
-        activeCells = new HashSet<Vector3Int>();
-        cellsToCheck = new HashSet<Vector3Int>();
+        activeCells = new HashSet<Vector2Int>();
+        cellsToCheck = new HashSet<Vector2Int>();
+
+        frontBuffer = new();
+        backBuffer = new(); 
     }
 
     private void Start()
@@ -42,8 +46,8 @@ public class GameBoard : MonoBehaviour
 
         for (int i = 0; i < pattern.cells.Length; i++)
         {
-            Vector3Int cell = (Vector3Int)(pattern.cells[i].position - center);
-            frontBuffer.SetTile(cell, pattern.cells[i].tile.Tile);
+            Vector2Int cell = (pattern.cells[i].position - center);
+            frontBuffer.SetTile(cell, pattern.cells[i].tile);
             activeCells.Add(cell);
         }
 
@@ -54,8 +58,8 @@ public class GameBoard : MonoBehaviour
     {
         activeCells.Clear();
         cellsToCheck.Clear();
-        frontBuffer.ClearAllTiles();
-        backBuffer.ClearAllTiles();
+        frontBuffer.Clear();
+        backBuffer.Clear();
         Population = 0;
         Iterations = 0;
         Time = 0f;
@@ -92,89 +96,39 @@ public class GameBoard : MonoBehaviour
         cellsToCheck.Clear();
 
         // gather cells to check
-        foreach (Vector3Int cell in activeCells) {
+        foreach (Vector2Int cell in activeCells) {
             for (int x = -1; x <= 1; x++)
                 for (int y = -1; y <= 1; y++)
-                    cellsToCheck.Add(cell + new Vector3Int(x, y));
+                    cellsToCheck.Add(cell + new Vector2Int(x, y));
 
         }
 
         // transition cells to the next state
-        foreach (Vector3Int cell in cellsToCheck)
+        foreach (Vector2Int cell in cellsToCheck)
         {
             TileDefinition result = TileDefinition.NoResult;
             foreach (var rule in rules) {
-                result = rule.Evaluate(this, cell);
+                result = rule.Evaluate(frontBuffer, cell);
                 if(!result.isNon)
                     break; 
             }
             ApplyResult(result, cell);
         }
 
+        frontBuffer.DrawToTilemap(RenderMap);
+
         // swap current state with next state
-        Tilemap temp = frontBuffer;
-        frontBuffer = backBuffer;
-        backBuffer = temp;
-        backBuffer.ClearAllTiles();
+        (backBuffer, frontBuffer) = (frontBuffer, backBuffer);
+        backBuffer.Clear();
     }
 
-    public int CountNeighbors(Vector3Int cell)
-    {
-        int count = 0;
-
-        for (int x = -1; x <= 1; x++)
-        {
-            for (int y = -1; y <= 1; y++)
-            {
-                Vector3Int neighbor = cell + new Vector3Int(x, y);
-
-                if (x == 0 && y == 0) {
-                    continue; //skipped to not count self
-                } else if (IsAlive(neighbor)) {
-                    count++;
-                }
-            }
-        }
-
-        return count;
-    }
-    public int CountNeighborsOfType(Vector3Int cell, TileDefinition tile)
-    {
-        int count = 0;
-
-        for (int x = -1; x <= 1; x++)
-        {
-            for (int y = -1; y <= 1; y++)
-            {
-                Vector3Int neighbor = cell + new Vector3Int(x, y);
-
-                if (x == 0 && y == 0)
-                {
-                    continue;
-                }
-                else if (IsAlive(neighbor) && frontBuffer.GetTile(neighbor) == tile.Tile)
-                {
-                    count++;
-                }
-            }
-        }
-
-        return count;
-    }
-
-    public bool IsAlive(Vector3Int cell)
-    {
-        return frontBuffer.GetTile(cell) != TileDefinition.Dead.Tile;
-    }
-
-
-    public void ApplyResult(TileDefinition result, Vector3Int cell) {
+    public void ApplyResult(TileDefinition result, Vector2Int cell) {
         if(result.isDead) {
             activeCells.Remove(cell);
-            backBuffer.SetTile(cell, result.Tile);
+            backBuffer.SetTile(cell, result);
         } else if(!result.isNon) {
             activeCells.Add(cell);
-            backBuffer.SetTile(cell, result.Tile);
+            backBuffer.SetTile(cell, result);
         } else {
             backBuffer.SetTile(cell, frontBuffer.GetTile(cell));
         }

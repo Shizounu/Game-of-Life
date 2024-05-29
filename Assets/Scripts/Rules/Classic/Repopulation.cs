@@ -7,18 +7,15 @@ public class Repopulation : Rule
 {
     public TileDefinition Tile;
 
-    public override TileDefinition Evaluate(GameBoard board, Vector3Int positon)
+    public override TileDefinition Evaluate(TileBuffer board, Vector2Int positon)
     {
         /*
         Debug.Log($"Tile at {positon} is {board.IsAlive(positon)}");
         Debug.Log($"Tile at {positon} has {board.CountNeighbors(positon)} neighbours");
         */
 
-        if (!board.IsAlive(positon) && board.CountNeighbors(positon) == 3)
-        {
-            Debug.Log($"repopulating at {positon}");
+        if (!board.IsAlive(positon) && board.CountAliveNeighbors(positon) == 3)
             return Tile;
-        }
         return TileDefinition.NoResult;
     }
 }

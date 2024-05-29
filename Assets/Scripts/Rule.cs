@@ -5,5 +5,5 @@ using UnityEngine.Tilemaps;
 
 public abstract class Rule : ScriptableObject
 {
-    public abstract TileDefinition Evaluate(GameBoard board, Vector3Int positon);
+    public abstract TileDefinition Evaluate(TileBuffer board, Vector2Int positon);
 }
